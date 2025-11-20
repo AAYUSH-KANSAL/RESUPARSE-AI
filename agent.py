@@ -11,7 +11,7 @@ class ATSResumeAgent:
     def __init__(self, groq_api_key=None):
         self.llm = ChatGroq(
             api_key=groq_api_key or os.getenv("GROQ_API_KEY"),
-            model_name="llama3-70b-8192",
+            model_name="meta-llama/llama-4-scout-17b-16e-instruct",
             temperature=0.0  # Ensures deterministic output
         )
 
