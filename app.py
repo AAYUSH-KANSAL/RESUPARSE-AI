@@ -146,9 +146,43 @@ def generate_pdf(feedback):
     
     pdf.set_font("Arial", 'B', size=20)
     pdf.set_text_color(0, 191, 255) # Deep Sky Blue
-    pdf.cell(0, 10, "ATS Resume Analysis Report", ln=True, align='C')
+    
+    # Handle string input (e.g. Cover Letter)
+    if isinstance(feedback, str):
+        pdf.cell(0, 10, "Document Export", ln=True, align='C')
+        pdf.ln(10)
+        pdf.set_font("Arial", size=11)
+        pdf.set_text_color(0, 0, 0)
+        # Sanitize
+        text = feedback.replace('\u2013', '-').replace('\u2014', '-').replace('\u2018', "'").replace('\u2019', "'").replace('\u201c', '"').replace('\u201d', '"')
+        text = text.encode('latin-1', 'replace').decode('latin-1')
+        pdf.multi_cell(0, 8, text)
+        return pdf.output(dest='S').encode('latin-1')
+
+    # Handle Dictionary Input (Analysis or Interview Prep)
+    pdf.cell(0, 10, "ATS Feedback Report", ln=True, align='C')
     pdf.ln(15)
     
+    # Check if it's Interview Prep (has 'questions' key)
+    if "questions" in feedback:
+        pdf.set_font("Arial", 'B', size=14)
+        pdf.cell(0, 10, "Interview Preparation Guide", ln=True)
+        pdf.ln(5)
+        pdf.set_font("Arial", size=11)
+        pdf.set_text_color(0, 0, 0)
+        for idx, q in enumerate(feedback['questions']):
+            pdf.set_font("Arial", 'B', size=11)
+            pdf.multi_cell(0, 8, f"Q{idx+1}: {q['question']}")
+            pdf.set_font("Arial", 'I', size=11)
+            pdf.set_text_color(100, 100, 100)
+            pdf.multi_cell(0, 6, f"Logic: {q['why']}")
+            pdf.set_text_color(0, 191, 255)
+            pdf.multi_cell(0, 6, f"Tip: {q['star_tip']}")
+            pdf.ln(5)
+            pdf.set_text_color(0, 0, 0)
+        return pdf.output(dest='S').encode('latin-1')
+
+    # Default Case: Resume Analysis Feedback
     # 1. Executive Summary & Match Score
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("Arial", 'B', size=14)
@@ -160,7 +194,7 @@ def generate_pdf(feedback):
     pdf.set_font("Arial", 'B', size=12)
     pdf.cell(40, 10, f"Overall Match Score: {match_score}%")
     
-    # Simple Progress Bar in PDF
+    # Simple Progress Bar
     pdf.set_fill_color(230, 230, 230)
     pdf.rect(60, pdf.get_y() + 2, 100, 6, 'F')
     bar_color = (75, 192, 192) if match_score > 75 else (255, 206, 86) if match_score > 50 else (255, 99, 71)
@@ -170,21 +204,18 @@ def generate_pdf(feedback):
     
     pdf.set_font("Arial", size=11)
     summary = feedback.get("summary", "No summary available.")
-    if isinstance(summary, list):
-        summary = "\n".join(summary)
-    
-    # Sanitize for latin-1
+    if isinstance(summary, list): summary = "\n".join(summary)
     summary = summary.replace('\u2013', '-').replace('\u2014', '-').replace('\u2018', "'").replace('\u2019', "'").replace('\u201c', '"').replace('\u201d', '"')
     summary = summary.encode('latin-1', 'replace').decode('latin-1')
     pdf.multi_cell(0, 8, summary)
     pdf.ln(10)
     
+    # (Rest of sections...)
     # 2. Detailed Matching Matrix
     pdf.set_font("Arial", 'B', size=14)
     pdf.cell(0, 10, "2. Detailed Matching Matrix", ln=True)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
     pdf.ln(5)
-    
     cat_scores = feedback.get("category_scores", {})
     if cat_scores:
         pdf.set_font("Arial", size=11)
@@ -198,29 +229,23 @@ def generate_pdf(feedback):
     pdf.cell(0, 10, "3. Skill Gap Analysis", ln=True)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
     pdf.ln(5)
-    
     pdf.set_font("Arial", 'B', size=12)
-    pdf.set_text_color(46, 139, 87) # SeaGreen
+    pdf.set_text_color(46, 139, 87)
     pdf.cell(0, 8, "Matched Skills:", ln=True)
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("Arial", size=11)
     matched = feedback.get("matched_keywords", [])
-    if matched:
-        pdf.multi_cell(0, 8, ", ".join(matched))
-    else:
-        pdf.cell(0, 8, "No direct matches found.", ln=True)
+    if matched: pdf.multi_cell(0, 8, ", ".join(matched))
+    else: pdf.cell(0, 8, "No direct matches found.", ln=True)
     pdf.ln(5)
-    
     pdf.set_font("Arial", 'B', size=12)
-    pdf.set_text_color(178, 34, 34) # Firebrick
+    pdf.set_text_color(178, 34, 34)
     pdf.cell(0, 8, "Missing Keywords:", ln=True)
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("Arial", size=11)
     missing = feedback.get("missing_keywords", [])
-    if missing:
-        pdf.multi_cell(0, 8, ", ".join(missing))
-    else:
-        pdf.cell(0, 8, "No missing keywords identified!", ln=True)
+    if missing: pdf.multi_cell(0, 8, ", ".join(missing))
+    else: pdf.cell(0, 8, "No missing keywords identified!", ln=True)
     pdf.ln(10)
 
     # 4. Action Plan
@@ -228,7 +253,6 @@ def generate_pdf(feedback):
     pdf.cell(0, 10, "4. Strategic Action Plan", ln=True)
     pdf.line(10, pdf.get_y(), 200, pdf.get_y())
     pdf.ln(5)
-    
     pdf.set_font("Arial", size=11)
     improvements = feedback.get("improvements", [])
     for idx, imp in enumerate(improvements):
@@ -251,8 +275,8 @@ with st.sidebar:
     st.image("resuparseai.png", width=280)
     page = option_menu(
         menu_title="Navigation",
-        options=["📄 Resume Analyzer"],
-        icons=["file-earmark-text"],
+        options=["📄 Resume Analyzer", "✍️ Cover Letter", "🎯 Skill Gap", "🎤 Interview Prep"],
+        icons=["file-earmark-text", "pen", "layout-text-sidebar", "people"],
         menu_icon="cast",
         default_index=0,
         styles={
@@ -262,6 +286,30 @@ with st.sidebar:
             "nav-link-selected": {"background-color": "rgba(0, 191, 255, 0.2)", "border-left": "4px solid #00bfff"},
         }
     )
+    st.markdown("---")
+    st.markdown("""
+        <div style='text-align: center; opacity: 0.6; font-size: 14px;'>
+            ResuParse AI v2.0<br>
+            Powered by Groq 🚀
+        </div>
+    """, unsafe_allow_html=True)
+
+# -------- Shared Analysis Input Helper --------
+def show_shared_inputs():
+    st.markdown("### 📥 Profile Data")
+    col_jd, col_res = st.columns(2)
+    with col_jd:
+        st.markdown("#### 🎯 Job Description")
+        jd_file = st.file_uploader("Update JD", type=["pdf", "docx"], key=f"jd_{page}")
+        st.session_state.jd_text = st.text_area("JD Text", value=st.session_state.jd_text, height=150, key=f"jd_txt_{page}")
+        jd = extract_text_from_pdf(jd_file) if jd_file and jd_file.name.lower().endswith("pdf") else extract_text_from_docx(jd_file) if jd_file else st.session_state.jd_text
+    with col_res:
+        st.markdown("#### 📄 Your Resume")
+        rc_file = st.file_uploader("Update Resume", type=["pdf", "docx"], key=f"res_{page}")
+        st.session_state.resume_text = st.text_area("Resume Text", value=st.session_state.resume_text, height=150, key=f"res_txt_{page}")
+        if rc_file: st.session_state.resume_file = rc_file
+        res = extract_text_from_pdf(st.session_state.resume_file) if st.session_state.resume_file and st.session_state.resume_file.name.lower().endswith("pdf") else extract_text_from_docx(st.session_state.resume_file) if st.session_state.resume_file else st.session_state.resume_text
+    return res, jd
 
 # -------- Resume Analyzer Tab --------
 if page == "📄 Resume Analyzer":
@@ -445,120 +493,82 @@ if page == "📄 Resume Analyzer":
             else:
                 st.markdown(feedback)
 
-# -------- Magic Rephrase Tab --------
-elif page == "✨ Magic Rephrase":
-    st.header("🔮 Magic Rephrase")
-    txt = st.text_area("Text to rephrase")
-    if txt and st.button("Rephrase"):
-        result = agent.rephrase(txt)
-        st.success(result)
+# Helper function moved to top level to avoid breaking if-elif chain
 
-# -------- ATS Templates Tab --------
-elif page == "📁 ATS Templates":
-    st.header("📁 ATS Templates")
-    st.markdown("Choose from these ATS-friendly resume templates:")
-    templates = {
-        "Modern Minimal": "https://docs.google.com/document/d/1NWFIz-EZ1ZztZSdXfrrcdffSzG-uermd/edit",
-        "Elegant Blue": "https://docs.google.com/document/d/1xO7hvK-RQSb0mjXRn24ri3AiDrXx6qt8/edit",
-        "Classic Chronological": "https://docs.google.com/document/d/1fAukvT0lWXns3VexbZjwXyCAZGw2YptO/edit"
-    }
-    for name, url in templates.items():
-        st.markdown(f"**[{name}]({url})**")
-
-# -------- Skill Gap Analyzer Tab --------
-elif page == "📊 Skill Gap Analyzer":
-    st.header("📊 Skill Gap Analyzer")
-    st.markdown("### Upload Job Description or paste below")
-    jd_file = st.file_uploader("Upload Job Description (PDF or DOCX)", type=["pdf", "docx"], key="jd_file2")
-    jd_text = st.text_area("Or paste the Job Description here", value=st.session_state.jd_text, key="jd2")
+# -------- Cover Letter Tab --------
+elif page == "✍️ Cover Letter":
+    st.markdown("<h2 style='color:#00bfff;'>✍️ AI Cover Letter Architect</h2>", unsafe_allow_html=True)
+    resume, jd = show_shared_inputs()
     
-    if jd_text != st.session_state.jd_text:
-        st.session_state.jd_text = jd_text
+    if st.button("✨ Draft My Cover Letter"):
+        if resume and jd:
+            with st.spinner("Crafting a persuasive narrative..."):
+                letter = agent.generate_cover_letter_text(resume, jd)
+                st.markdown("### 💌 Your Professional Cover Letter")
+                st.markdown(f"<div class='custom-card' style='white-space: pre-wrap; font-family: serif; line-height: 1.6;'>{letter}</div>", unsafe_allow_html=True)
+                st.download_button("📥 Download PDF", data=generate_pdf(letter), file_name="tailored_cover_letter.pdf")
+        else:
+            st.warning("Please provide both Resume and JD.")
 
-    st.caption("📂 You can upload a job description file or paste it below.")
-    jd = extract_text_from_pdf(jd_file) if jd_file and jd_file.name.lower().endswith("pdf") else extract_text_from_docx(jd_file) if jd_file else jd_text
-
-    st.markdown("### Upload or paste your Resume")
-    rf2_file = st.file_uploader("Upload resume", type=["pdf", "docx"], key="rf2")
-    rf2_text = st.text_area("Or paste your Resume here", value=st.session_state.resume_text, key="rf2_text")
-    if rf2_text != st.session_state.resume_text:
-        st.session_state.resume_text = rf2_text
-
-    if rf2_file:
-        st.session_state.resume_file = rf2_file
-        
-    current_resume_file = st.session_state.resume_file
-    resume_input = extract_text_from_pdf(current_resume_file) if current_resume_file and current_resume_file.name.lower().endswith("pdf") else extract_text_from_docx(current_resume_file) if current_resume_file else rf2_text
-
-    if resume_input and jd and st.button("Analyze Skill Gaps"):
-        with st.spinner("Analyzing skill gaps..."):
-            result = agent.skill_gap_text(resume_input, jd)
-            st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-            st.markdown(result)
-            st.markdown("</div>", unsafe_allow_html=True)
-
-# -------- Cover Letter Gen Tab --------
-elif page == "📝 Cover Letter Gen":
-    st.header("📝 AI Cover Letter Generator")
-    st.markdown("Generate a tailored cover letter based on your resume and target job.")
+# -------- Skill Gap Tab --------
+elif page == "🎯 Skill Gap":
+    st.markdown("<h2 style='color:#00bfff;'>🎯 Skill Gap Bridge</h2>", unsafe_allow_html=True)
+    resume, jd = show_shared_inputs()
     
-    jd_file = st.file_uploader("Upload Job Description (PDF or DOCX)", type=["pdf", "docx"], key="jd_cv_file")
-    jd_text = st.text_area("Or paste the Job Description here", value=st.session_state.jd_text, key="jd_cv_text")
-    
-    if jd_text != st.session_state.jd_text:
-        st.session_state.jd_text = jd_text
-
-    jd = extract_text_from_pdf(jd_file) if jd_file and jd_file.name.lower().endswith("pdf") else extract_text_from_docx(jd_file) if jd_file else jd_text
-
-    st.markdown("### Upload or paste your Resume")
-    rc_cv_file = st.file_uploader("Upload Resume", type=["pdf", "docx"], key="rc_cv_file")
-    rc_cv_text = st.text_area("Or paste your Resume here", value=st.session_state.resume_text, key="rc_cv_text")
-    if rc_cv_text != st.session_state.resume_text:
-        st.session_state.resume_text = rc_cv_text
-
-    if rc_cv_file:
-        st.session_state.resume_file = rc_cv_file
-
-    current_resume_file = st.session_state.resume_file
-    resume_input = extract_text_from_pdf(current_resume_file) if current_resume_file and current_resume_file.name.lower().endswith("pdf") else extract_text_from_docx(current_resume_file) if current_resume_file else rc_cv_text
-
-    if resume_input and jd and st.button("Generate Cover Letter"):
-        with st.spinner("Drafting your tailored cover letter..."):
-            letter = agent.generate_cover_letter_text(resume_input, jd)
-            st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-            st.markdown(letter)
-            st.markdown("</div>", unsafe_allow_html=True)
-            st.download_button("📄 Download Cover Letter", data=generate_pdf(letter), file_name="cover_letter.pdf")
+    if st.button("🔍 Find My Gaps"):
+        if resume and jd:
+            with st.spinner("Analyzing skill landscape..."):
+                gap_data = agent.skill_gap_text(resume, jd)
+                if "error" in gap_data:
+                    st.error("AI Analysis failed. Showing raw output:")
+                    st.write(gap_data.get("raw_content"))
+                else:
+                    col1, col2 = st.columns([1, 1.5])
+                    with col1:
+                        st.markdown("#### ✅ Strengths")
+                        for s in gap_data.get("matched_skills", []):
+                            st.markdown(f"- <span style='color:#4bc0c0;'>{s}</span>", unsafe_allow_html=True)
+                        st.markdown("#### 🔴 Gaps")
+                        for s in gap_data.get("missing_skills", []):
+                            st.markdown(f"- <span style='color:#ff6347;'>{s}</span>", unsafe_allow_html=True)
+                    
+                    with col2:
+                        st.markdown("#### 🛠️ Bridge the Gap")
+                        for item in gap_data.get("bridge_the_gap", []):
+                            with st.expander(f"📚 Learning {item['skill']}", expanded=True):
+                                st.write(item['advice'])
+                                st.caption("Recommended Resources:")
+                                for res in item.get("resources", []):
+                                    st.markdown(f"- 🔗 `{res}`")
+                        
+                        st.markdown("#### 📅 4-Week Roadmap")
+                        st.success(gap_data.get("timeline", "Continue learning daily!"))
+        else:
+            st.warning("Please provide both Resume and JD.")
 
 # -------- Interview Prep Tab --------
 elif page == "🎤 Interview Prep":
-    st.header("🎤 Interview Preparation Assistant")
-    st.markdown("Generate customized interview questions based on your resume and the job description to help you prepare.")
+    st.markdown("<h2 style='color:#00bfff;'>🎤 Interview Prep Master</h2>", unsafe_allow_html=True)
+    resume, jd = show_shared_inputs()
     
-    jd_file = st.file_uploader("Upload Job Description (PDF or DOCX)", type=["pdf", "docx"], key="jd_int_file")
-    jd_text = st.text_area("Or paste the Job Description here", value=st.session_state.jd_text, key="jd_int_text")
-    
-    if jd_text != st.session_state.jd_text:
-        st.session_state.jd_text = jd_text
-
-    jd = extract_text_from_pdf(jd_file) if jd_file and jd_file.name.lower().endswith("pdf") else extract_text_from_docx(jd_file) if jd_file else jd_text
-
-    st.markdown("### Upload or paste your Resume")
-    rc_int_file = st.file_uploader("Upload Resume", type=["pdf", "docx"], key="rc_int_file")
-    rc_int_text = st.text_area("Or paste your Resume here", value=st.session_state.resume_text, key="rc_int_text")
-    if rc_int_text != st.session_state.resume_text:
-        st.session_state.resume_text = rc_int_text
-        
-    if rc_int_file:
-        st.session_state.resume_file = rc_int_file
-
-    current_resume_file = st.session_state.resume_file
-    resume_input = extract_text_from_pdf(current_resume_file) if current_resume_file and current_resume_file.name.lower().endswith("pdf") else extract_text_from_docx(current_resume_file) if current_resume_file else rc_int_text
-
-    if resume_input and jd and st.button("Generate Interview Questions"):
-        with st.spinner("Analyzing profile and generating questions..."):
-            questions = agent.generate_interview_questions_text(resume_input, jd)
-            st.markdown("<div class='custom-card'>", unsafe_allow_html=True)
-            st.markdown(questions)
-            st.markdown("</div>", unsafe_allow_html=True)
-            st.download_button("📄 Download Interview Guide", data=generate_pdf(questions), file_name="interview_prep.pdf")
+    if st.button("💡 Generate Questions"):
+        if resume and jd:
+            with st.spinner("Simulating interview panel..."):
+                data = agent.generate_interview_questions_text(resume, jd)
+                if "questions" in data:
+                    for idx, q in enumerate(data['questions']):
+                        with st.container():
+                            st.markdown(f"""
+                                <div class='custom-card'>
+                                    <span style='background:#00bfff; padding:3px 8px; border-radius:5px; font-size:12px;'>{q['category']}</span>
+                                    <p style='font-size:18px; margin-top:10px;'><strong>Q{idx+1}: {q['question']}</strong></p>
+                                    <p style='color:#aaa; font-style:italic;'><strong>Why this?</strong> {q['why']}</p>
+                                    <div style='background:rgba(0,191,255,0.1); padding:10px; border-radius:8px;'>
+                                        💡 <strong>Pro Tip:</strong> {q['star_tip']}
+                                    </div>
+                                </div>
+                            """, unsafe_allow_html=True)
+                else:
+                    st.error("Failed to generate questions. Please try again.")
+        else:
+            st.warning("Please provide both Resume and JD.")

@@ -34,10 +34,15 @@ class ATSResumeAgent:
 
     def skill_gap_text(self, text, job_description):
         prompt = f"""
-        Compare the resume to the job description. Return:
-        - Matched hard and soft skills
-        - Missing hard and soft skills
-        - Suggestions to close the skill gaps
+        Analyze the resume against the job description and identify skill gaps.
+        Return the response EXCLUSIVELY in JSON format with the following keys:
+        - "missing_skills": A list of specific hard/soft skills missing.
+        - "matched_skills": A list of skills that match.
+        - "bridge_the_gap": A list of objects, each with:
+            - "skill": Name of the missing skill.
+            - "advice": Brief strategy to learn it.
+            - "resources": A list of 2-3 specific resource names (e.g. "Coursera: Python for Data Science", "YouTube: Advanced React Patterns").
+        - "timeline": A suggested 2-4 week learning roadmap.
 
         Resume:
 {text}
@@ -46,7 +51,18 @@ class ATSResumeAgent:
 {job_description}
         """
         response = self.llm.invoke([HumanMessage(content=prompt)])
-        return response.content
+        return self._parse_json_or_fallback(response.content)
+
+    def _parse_json_or_fallback(self, content):
+        import json
+        import re
+        try:
+            match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', content, re.DOTALL)
+            if match:
+                content = match.group(1)
+            return json.loads(content)
+        except:
+            return {"error": "Failed to parse JSON", "raw_content": content}
 
     def skill_gap(self, resume_file, job_description):
         text = self._extract_text(resume_file)
@@ -54,13 +70,12 @@ class ATSResumeAgent:
 
     def generate_cover_letter_text(self, text, job_description):
         prompt = f"""
-        Act as an expert career coach and copywriter.
-        Write a compelling, professional, and highly tailored cover letter based on the candidate's resume and the target job description.
-        The cover letter should:
-        - Hook the reader in the opening paragraph.
-        - Highlight the candidate's most relevant skills and achievements that align directly with the job description.
-        - Explain why the candidate is a great cultural and technical fit for the role.
-        - Have a strong, positive closing call to action.
+        Act as an expert career coach. Write a highly tailored, persuasive cover letter.
+        Focus on:
+        - A powerful opening hook mentioning the specific company (placeholder: [Company Name]).
+        - Bridging the gap: Explain how the candidate's achievements (from Resume) directly solve the problems mentioned in the Job Description.
+        - Keep it concise, professional, and confident.
+        - Output the raw text of the letter without any introductory or concluding AI chatter.
 
         Resume:
 {text}
@@ -69,7 +84,7 @@ class ATSResumeAgent:
 {job_description}
         """
         response = self.llm.invoke([HumanMessage(content=prompt)])
-        return response.content
+        return response.content.strip()
         
     def generate_cover_letter(self, resume_file, job_description):
         text = self._extract_text(resume_file)
@@ -77,15 +92,14 @@ class ATSResumeAgent:
 
     def generate_interview_questions_text(self, text, job_description):
         prompt = f"""
-        Act as a senior hiring manager preparing for an interview.
-        Based on the provided resume and job description, generate a list of 5-7 targeted interview questions.
-        These questions should:
-        1. Probe into the candidate's specific experiences mentioned in the resume.
-        2. Test the specific skills required in the job description.
-        3. Include a mix of technical/hard skill questions and behavioral/soft skill questions.
-        4. Focus on areas where there might be a "skill gap" or where the candidate needs to prove their proficiency.
-        
-        For each question, briefly mention *why* this question is being asked and what a good answer would look like.
+        Act as a Senior Lead Interviewer.
+        Based on the Resume and JD, generate 10 impactful interview questions.
+        Provide the response EXCLUSIVELY in JSON format with a list of objects under the key "questions".
+        Each object should have:
+        - "category": "Behavioral" or "Technical".
+        - "question": The interview question.
+        - "why": The logic behind asking this (what are you testing?).
+        - "star_tip": A short advice on how to answer using the STAR method or technical keys.
 
         Resume:
 {text}
@@ -94,7 +108,7 @@ class ATSResumeAgent:
 {job_description}
         """
         response = self.llm.invoke([HumanMessage(content=prompt)])
-        return response.content
+        return self._parse_json_or_fallback(response.content)
 
     def generate_interview_questions(self, resume_file, job_description):
         text = self._extract_text(resume_file)
