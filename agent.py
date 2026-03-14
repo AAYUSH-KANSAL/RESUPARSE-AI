@@ -114,6 +114,48 @@ class ATSResumeAgent:
         text = self._extract_text(resume_file)
         return self.generate_interview_questions_text(text, job_description)
 
+    def generate_salary_insight_text(self, text, job_description):
+        prompt = f"""
+        Act as a Compensation Specialist.
+        Analyze the Job Description and the candidate's Resume to estimate salary and provide negotiation tips.
+        Return EXCLUSIVELY in JSON format:
+        - "salary_range": A realistic range (e.g. "$90k - $120k") based on role and seniority.
+        - "market_analysis": A 2-line summary of the current market demand for this role.
+        - "negotiation_scripts": A list of 3 objects with:
+            - "scenario": (e.g. "Countering a Low Offer", "Asking for Sign-on Bonus").
+            - "script": A professional, word-for-word script the user can use.
+        - "leverage_points": 3 specific skills or achievements from the Resume that justify a higher pay for this specific JD.
+
+        Resume:
+{text}
+
+        Job Description:
+{job_description}
+        """
+        response = self.llm.invoke([HumanMessage(content=prompt)])
+        return self._parse_json_or_fallback(response.content)
+
+    def generate_project_ideas_text(self, text, job_description):
+        prompt = f"""
+        Act as a Technical Project Mentor.
+        Find the missing skills between this Resume and JD.
+        For top 3 missing skills, propose 1 high-impact "Resume-Builder" project each.
+        Return EXCLUSIVELY in JSON format a list of objects under "projects":
+        - "skill": The missing skill it addresses.
+        - "title": A catchy project title.
+        - "description": A 2-line description of what to build.
+        - "tech_stack": A list of tools/libraries to use.
+        - "resume_bullet": How to describe this project in one impactful bullet point once finished.
+
+        Resume:
+{text}
+
+        Job Description:
+{job_description}
+        """
+        response = self.llm.invoke([HumanMessage(content=prompt)])
+        return self._parse_json_or_fallback(response.content)
+
     def _extract_text(self, file):
         if file.name.lower().endswith(".pdf"):
             reader = PdfReader(file)

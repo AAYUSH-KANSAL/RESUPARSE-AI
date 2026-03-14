@@ -271,8 +271,8 @@ with st.sidebar:
     st.image("resuparseai.png", width=280)
     page = option_menu(
         menu_title="Navigation",
-        options=["📄 Resume Analyzer", "✍️ Cover Letter", "🎯 Skill Gap", "🎤 Interview Prep"],
-        icons=["file-earmark-text", "pen", "layout-text-sidebar", "people"],
+        options=["📄 Resume Analyzer", "✍️ Cover Letter", "🎯 Skill Gap", "🎤 Interview Prep", "💰 Salary Coach"],
+        icons=["file-earmark-text", "pen", "layout-text-sidebar", "people", "cash-stack"],
         menu_icon="cast",
         default_index=0,
         styles={
@@ -541,6 +541,25 @@ elif page == "🎯 Skill Gap":
                                 </div>
                             """, unsafe_allow_html=True)
                         
+                        st.markdown("---")
+                        st.markdown("#### 🛠️ High-Impact Project Ideas")
+                        with st.spinner("Generating resume-builder projects..."):
+                            proj_data = agent.generate_project_ideas_text(resume, jd)
+                            if "projects" in proj_data:
+                                for p in proj_data['projects']:
+                                    st.markdown(f"""
+                                        <div class='custom-card' style='border-top: 3px solid #00bfff;'>
+                                            <span style='color:#00bfff; font-size:12px; font-weight:bold;'>Skill: {p['skill']}</span>
+                                            <h5 style='margin-top:5px;'>{p['title']}</h5>
+                                            <p style='font-size:14px;'>{p['description']}</p>
+                                            <p style='color:#aaa; font-size:12px;'><strong>Tech Stack:</strong> {', '.join(p['tech_stack'])}</p>
+                                            <div style='background:rgba(75, 192, 192, 0.1); padding:8px; border-radius:5px; border:1px dashed #4bc0c0;'>
+                                                🚀 <strong>Resume Bullet:</strong> {p['resume_bullet']}
+                                            </div>
+                                        </div>
+                                    """, unsafe_allow_html=True)
+                        
+                        st.markdown("---")
                         st.markdown("#### 📅 4-Week Career Roadmap")
                         timeline = gap_data.get("timeline", [])
                         if isinstance(timeline, list):
@@ -585,5 +604,47 @@ elif page == "🎤 Interview Prep":
                             """, unsafe_allow_html=True)
                 else:
                     st.error("Failed to generate questions. Please try again.")
+        else:
+            st.warning("Please provide both Resume and JD.")
+
+# -------- Salary Coach Tab --------
+elif page == "💰 Salary Coach":
+    st.markdown("<h2 style='color:#00bfff;'>💰 Salary Insight & Negotiation Coach</h2>", unsafe_allow_html=True)
+    resume, jd = show_shared_inputs()
+    
+    if st.button("💹 Get Salary Insights"):
+        if resume and jd:
+            with st.spinner("Analyzing market data and profile value..."):
+                data = agent.generate_salary_insight_text(resume, jd)
+                
+                col_info, col_scripts = st.columns([1, 1.5])
+                
+                with col_info:
+                    st.markdown(f"""
+                        <div class='custom-card' style='text-align: center;'>
+                            <h4 style='color: #4bc0c0;'>Estimated Range</h4>
+                            <h2 style='color: #fff;'>{data.get('salary_range', 'N/A')}</h2>
+                            <p style='opacity: 0.8;'>{data.get('market_analysis', '')}</p>
+                        </div>
+                    """, unsafe_allow_html=True)
+                    
+                    st.markdown("#### 🧠 Your Leverage Points")
+                    for p in data.get('leverage_points', []):
+                        st.markdown(f"- ✨ **{p}**")
+                
+                with col_scripts:
+                    st.markdown("#### 💬 Negotiation Scripts")
+                    for s in data.get('negotiation_scripts', []):
+                        with st.expander(f"📌 Scenario: {s['scenario']}", expanded=True):
+                            st.markdown(f"""
+                                <div style='background: rgba(0,0,0,0.2); padding: 15px; border-radius: 8px; border: 1px solid rgba(0, 191, 255, 0.2); font-style: italic;'>
+                                    "{s['script']}"
+                                </div>
+                            """, unsafe_allow_html=True)
+                            st.button(f"📋 Copy Script", key=f"copy_{s['scenario']}", on_click=lambda text=s['script']: st.write(f"Copied: {text[:20]}..."))
+                
+                st.markdown("---")
+                st.download_button("📥 Download Negotiation Guide", data=generate_pdf(data), file_name="salary_negotiation_guide.pdf")
+
         else:
             st.warning("Please provide both Resume and JD.")
