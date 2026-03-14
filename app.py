@@ -155,11 +155,38 @@ def generate_pdf(feedback):
         pdf.multi_cell(0, 8, text)
         return pdf.output(dest='S').encode('latin-1')
 
-    # Handle Dictionary Input (Analysis or Interview Prep)
-    pdf.cell(0, 10, "ATS Feedback Report", ln=True, align='C')
-    pdf.ln(15)
-    
-    # Check if it's Interview Prep (has 'questions' key)
+    # Handle Dictionary Input
+    if "salary_range" in feedback:
+        pdf.set_font("Arial", 'B', size=14)
+        pdf.cell(0, 10, "Salary Negotiation & Market Guide", ln=True)
+        pdf.ln(5)
+        pdf.set_font("Arial", 'B', size=12)
+        pdf.set_text_color(46, 139, 87) # SeaGreen
+        pdf.cell(0, 10, f"Estimated Market Range: {feedback.get('salary_range', 'N/A')}", ln=True)
+        pdf.set_text_color(0, 0, 0)
+        pdf.set_font("Arial", size=11)
+        pdf.multi_cell(0, 8, feedback.get('market_analysis', ''))
+        pdf.ln(5)
+        pdf.set_font("Arial", 'B', size=12)
+        pdf.cell(0, 10, "Key Leverage Points:", ln=True)
+        pdf.set_font("Arial", size=11)
+        for lp in feedback.get('leverage_points', []):
+            pdf.multi_cell(0, 8, f"- {lp}")
+        pdf.ln(5)
+        pdf.set_font("Arial", 'B', size=12)
+        pdf.cell(0, 10, "Negotiation Scripts:", ln=True)
+        for s in feedback.get('negotiation_scripts', []):
+            pdf.set_font("Arial", 'B', size=11)
+            pdf.set_text_color(0, 102, 204)
+            pdf.cell(0, 8, f"Scenario: {s['scenario']}", ln=True)
+            pdf.set_text_color(0, 0, 0)
+            pdf.set_font("Arial", 'I', size=11)
+            script = s['script'].replace('\u2013', '-').replace('\u2014', '-').replace('\u2018', "'").replace('\u2019', "'").replace('\u201c', '"').replace('\u201d', '"')
+            script = script.encode('latin-1', 'replace').decode('latin-1')
+            pdf.multi_cell(0, 8, f"\"{script}\"")
+            pdf.ln(3)
+        return pdf.output(dest='S').encode('latin-1')
+
     if "questions" in feedback:
         pdf.set_font("Arial", 'B', size=14)
         pdf.cell(0, 10, "Interview Preparation Guide", ln=True)
@@ -179,6 +206,8 @@ def generate_pdf(feedback):
         return pdf.output(dest='S').encode('latin-1')
 
     # Default Case: Resume Analysis Feedback
+    pdf.cell(0, 10, "ATS Feedback Report", ln=True, align='C')
+    pdf.ln(10)
     # 1. Executive Summary & Match Score
     pdf.set_text_color(0, 0, 0)
     pdf.set_font("Arial", 'B', size=14)
