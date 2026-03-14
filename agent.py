@@ -119,8 +119,8 @@ class ATSResumeAgent:
         Act as a Compensation Specialist.
         Analyze the Job Description and the candidate's Resume to estimate salary and provide negotiation tips.
         Return EXCLUSIVELY in JSON format:
-        - "salary_range": A realistic range (e.g. "$90k - $120k") based on role and seniority.
-        - "market_analysis": A 2-line summary of the current market demand for this role.
+        - "salary_range": A realistic range in Indian Rupees (INR) (e.g. "12 LPA - 18 LPA" or "Rs. 1,00,000 - 1,50,000 per month").
+        - "market_analysis": A 2-line summary of the current market demand for this role in India.
         - "negotiation_scripts": A list of 3 objects with:
             - "scenario": (e.g. "Countering a Low Offer", "Asking for Sign-on Bonus").
             - "script": A professional, word-for-word script the user can use.

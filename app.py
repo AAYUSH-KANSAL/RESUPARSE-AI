@@ -130,6 +130,27 @@ def extract_text_from_docx(docx_file):
     doc = Document(docx_file)
     return "\n".join(para.text for para in doc.paragraphs)
 
+def sanitize_text(text):
+    if not text:
+        return ""
+    # Map of problematic unicode characters to latin-1 acceptable ones
+    replacements = {
+        '\u2011': '-', # Non-breaking hyphen
+        '\u2013': '-', # En dash
+        '\u2014': '-', # Em dash
+        '\u2018': "'", # Left single quote
+        '\u2019': "'", # Right single quote
+        '\u201c': '"', # Left double quote
+        '\u201d': '"', # Right double quote
+        '\u2022': '*', # Bullet
+        '\u2026': '...',# Ellipsis
+    }
+    for char, replacement in replacements.items():
+        text = text.replace(char, replacement)
+    
+    # Final encoding pass to catch any stragglers
+    return text.encode('latin-1', 'replace').decode('latin-1')
+
 def generate_pdf(feedback):
     pdf = FPDF()
     pdf.add_page()
@@ -149,10 +170,7 @@ def generate_pdf(feedback):
         pdf.ln(10)
         pdf.set_font("Arial", size=11)
         pdf.set_text_color(0, 0, 0)
-        # Sanitize
-        text = feedback.replace('\u2013', '-').replace('\u2014', '-').replace('\u2018', "'").replace('\u2019', "'").replace('\u201c', '"').replace('\u201d', '"')
-        text = text.encode('latin-1', 'replace').decode('latin-1')
-        pdf.multi_cell(0, 8, text)
+        pdf.multi_cell(0, 8, sanitize_text(feedback))
         return pdf.output(dest='S').encode('latin-1')
 
     # Handle Dictionary Input
@@ -162,28 +180,26 @@ def generate_pdf(feedback):
         pdf.ln(5)
         pdf.set_font("Arial", 'B', size=12)
         pdf.set_text_color(46, 139, 87) # SeaGreen
-        pdf.cell(0, 10, f"Estimated Market Range: {feedback.get('salary_range', 'N/A')}", ln=True)
+        pdf.cell(0, 10, f"Estimated Market Range: {sanitize_text(feedback.get('salary_range', 'N/A'))}", ln=True)
         pdf.set_text_color(0, 0, 0)
         pdf.set_font("Arial", size=11)
-        pdf.multi_cell(0, 8, feedback.get('market_analysis', ''))
+        pdf.multi_cell(0, 8, sanitize_text(feedback.get('market_analysis', '')))
         pdf.ln(5)
         pdf.set_font("Arial", 'B', size=12)
         pdf.cell(0, 10, "Key Leverage Points:", ln=True)
         pdf.set_font("Arial", size=11)
         for lp in feedback.get('leverage_points', []):
-            pdf.multi_cell(0, 8, f"- {lp}")
+            pdf.multi_cell(0, 8, f"- {sanitize_text(lp)}")
         pdf.ln(5)
         pdf.set_font("Arial", 'B', size=12)
         pdf.cell(0, 10, "Negotiation Scripts:", ln=True)
         for s in feedback.get('negotiation_scripts', []):
             pdf.set_font("Arial", 'B', size=11)
             pdf.set_text_color(0, 102, 204)
-            pdf.cell(0, 8, f"Scenario: {s['scenario']}", ln=True)
+            pdf.cell(0, 8, f"Scenario: {sanitize_text(s['scenario'])}", ln=True)
             pdf.set_text_color(0, 0, 0)
             pdf.set_font("Arial", 'I', size=11)
-            script = s['script'].replace('\u2013', '-').replace('\u2014', '-').replace('\u2018', "'").replace('\u2019', "'").replace('\u201c', '"').replace('\u201d', '"')
-            script = script.encode('latin-1', 'replace').decode('latin-1')
-            pdf.multi_cell(0, 8, f"\"{script}\"")
+            pdf.multi_cell(0, 8, f"\"{sanitize_text(s['script'])}\"")
             pdf.ln(3)
         return pdf.output(dest='S').encode('latin-1')
 
@@ -195,12 +211,12 @@ def generate_pdf(feedback):
         pdf.set_text_color(0, 0, 0)
         for idx, q in enumerate(feedback['questions']):
             pdf.set_font("Arial", 'B', size=11)
-            pdf.multi_cell(0, 8, f"Q{idx+1}: {q['question']}")
+            pdf.multi_cell(0, 8, f"Q{idx+1}: {sanitize_text(q['question'])}")
             pdf.set_font("Arial", 'I', size=11)
             pdf.set_text_color(100, 100, 100)
-            pdf.multi_cell(0, 6, f"Logic: {q['why']}")
+            pdf.multi_cell(0, 6, f"Logic: {sanitize_text(q['why'])}")
             pdf.set_text_color(0, 191, 255)
-            pdf.multi_cell(0, 6, f"Tip: {q['star_tip']}")
+            pdf.multi_cell(0, 6, f"Tip: {sanitize_text(q['star_tip'])}")
             pdf.ln(5)
             pdf.set_text_color(0, 0, 0)
         return pdf.output(dest='S').encode('latin-1')
@@ -230,9 +246,7 @@ def generate_pdf(feedback):
     pdf.set_font("Arial", size=11)
     summary = feedback.get("summary", "No summary available.")
     if isinstance(summary, list): summary = "\n".join(summary)
-    summary = summary.replace('\u2013', '-').replace('\u2014', '-').replace('\u2018', "'").replace('\u2019', "'").replace('\u201c', '"').replace('\u201d', '"')
-    summary = summary.encode('latin-1', 'replace').decode('latin-1')
-    pdf.multi_cell(0, 8, summary)
+    pdf.multi_cell(0, 8, sanitize_text(summary))
     pdf.ln(10)
     
     # (Rest of sections...)
@@ -281,9 +295,7 @@ def generate_pdf(feedback):
     pdf.set_font("Arial", size=11)
     improvements = feedback.get("improvements", [])
     for idx, imp in enumerate(improvements):
-        imp_clean = imp.replace('\u2013', '-').replace('\u2014', '-').replace('\u2018', "'").replace('\u2019', "'").replace('\u201c', '"').replace('\u201d', '"')
-        imp_clean = imp_clean.encode('latin-1', 'replace').decode('latin-1')
-        pdf.multi_cell(0, 8, f"{idx+1}. {imp_clean}")
+        pdf.multi_cell(0, 8, f"{idx+1}. {sanitize_text(imp)}")
     
     return pdf.output(dest='S').encode('latin-1')
 
