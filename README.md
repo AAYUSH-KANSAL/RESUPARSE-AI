@@ -1,77 +1,74 @@
-# 🤖 ResuParse AI – AI Resume Analyzer
+# 🤖 ResuParse AI – The Ultimate AI Career Assistant
 
-Transform your resume into an interview-winning document with the power of AI.  
-**ResuParse AI** is a smart resume analysis system powered by **LLaMA 3** and **LangChain**, designed to help you stand out in job applications by optimizing your resume for ATS (Applicant Tracking Systems) and job relevance.
+Transform your job search with the power of AI. **ResuParse AI** is a comprehensive career suite powered by **LLaMA 3** and **LangChain**, designed to optimize your resume, bridge skill gaps, and coach you through interviews and salary negotiations.
 
 ---
 
-## ✨ Features
+## 💎 Features
 
-📄 **Resume Analyzer**  
-Get match percentage, keyword insights, and improvement suggestions based on your job description.
+### 📄 1. AI Resume Analyzer
+Get a match percentage, keyword analysis, and actionable improvement suggestions tailored to a specific Job Description (JD). Use a strict scoring matrix to see exactly how you compare to the ideal candidate.
 
-🪄 **Magic Rephrasing**  
-Reword resume lines using action verbs, impact phrases, and ATS-friendly formatting.
+### ✍️ 2. AI Cover Letter Architect
+Generate highly persuasive, tailored cover letters that bridge your background with the company's needs. Focuses on impact and solving the employer's problems.
 
-📊 **Skill Gap Analysis**  
-Find missing skills in your resume compared to the job post and get tips to bridge the gap.
+### 🎯 3. Skill Gap Bridge
+Find exactly what's missing between your resume and the JD. Includes a **4-Week Career Roadmap** to help you systematically learn missing skills.
 
-📁 **ATS Templates (Coming Soon)**  
-Access clean, AI-suggested resume formats optimized for recruiter systems.
+### 🛠️ 4. Resume-Builder Project Ideas
+Address your skill gaps by building high-impact technical projects. Generates project titles, tech stacks, and even the exact **Resume Bullet Point** to use once you're done.
+
+### 🎤 5. Interview Prep Master
+Generate 10 customized interview questions (Behavioral & Technical) based on your profile. Includes "Why this?" rationale and "Pro Tips" for answering using the STAR method.
+
+### 💰 6. Salary & Negotiation Coach
+Estimate your market value in **INR** based on your seniority. Get ready-to-use negotiation scripts for scenarios like countering low offers or requesting bonuses.
 
 ---
 
 ## 🚀 How to Use
 
---> **Set API Key**  
-   Get your free Groq API key from [Groq Console](https://console.groq.com) and add it to your `.env` file:
-   ```env
+### 1. Set Up Environment
+Get your Groq API key from [Groq Console](https://console.groq.com) and add it to a `.env` file:
+```env
 GROQ_API_KEY=your_groq_api_key_here
-Launch the App
-git clone https://github.com/your-username/JobWise_ATS_Analyzer.git
-cd ResuParse_AI_ATS_Analyzer
+```
+
+### 2. Local Launch
+```bash
+# Clone the repository
+git clone https://github.com/your-username/RESUPARSE-AI.git
+cd RESUPARSE-AI
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Run the app
 streamlit run app.py
-Upload Your Resume & Job Description
-The AI will analyze, rephrase, and compare for a perfect job fit.
-📄 Supported File Formats
+```
 
-Resume: PDF (.pdf) and Word (.docx)
-Job Description: Text input (paste it directly)
-🧠 How It Works
+---
 
-ResuParse AI uses a powerful AI agent based on LLaMA 3 (via Groq) and managed through LangChain to perform:
+## 🔧 Tech Stack
+- **LLM**: LLaMA 3 (via Groq API)
+- **Framework**: LangChain & Streamlit
+- **PDF/Docx Parsing**: PyPDF2, python-docx
+- **UI Architecture**: Glassmorphism with Custom CSS
+- **PDF Export**: FPDF
 
-Resume parsing and formatting
-Contextual comparison with job descriptions
-Insight generation with match scores and keyword gaps
-Rewriting and improvement suggestions
-All processing is done instantly in your session – no data is stored.
+---
 
-🔧 Tech Stack
+## 🛡️ Privacy & Security
+- **No Data Storage**: All processing happens live in your session.
+- **Secure API Handling**: Keys are managed via `.env` and never exposed.
+- **Premium UX**: Smooth transitions, interactive cards, and high-performance AI responses.
 
-LLM: LLaMA 3 (via Groq API)
-Agent Engine: LangChain
-Frontend: Streamlit
-Parsing: PyPDF2, python-docx
-Env Management: python-dotenv
-🌟 Perfect For
+---
 
-📌 Job Seekers
-🧑‍💼 Professionals looking to switch careers
-🎓 Students preparing their first resume
-🧠 AI Enthusiasts building real-world projects
-🛡️ Privacy & Security
+## 🎯 Target Audience
+- **Job Seekers** looking for a competitive edge.
+- **Students** building their first professional profile.
+- **Career Switchers** needing specialized roadmaps.
 
-No resume or job data is stored
-All processing happens live in your browser session
-API keys are securely handled via .env file
-🎯 Get Started
-
-Just upload your resume and paste a job description — JobWise will do the rest:
-
-✅ Check match %
-✅ Find missing keywords
-✅ Suggest improvements
-✅ Rephrase resume lines
-✅ Optimize for ATS
+---
+*Built with ❤️ for ambitious professionals.*

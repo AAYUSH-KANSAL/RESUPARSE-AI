@@ -1,7 +1,14 @@
 .env
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 *.db
 *.pdf
 .vscode/
 .DS_Store
+.idea/
+.streamlit/
+venv/
+env/
+node_modules/
