@@ -531,14 +531,33 @@ elif page == "🎯 Skill Gap":
                     with col2:
                         st.markdown("#### 🛠️ Bridge the Gap")
                         for item in gap_data.get("bridge_the_gap", []):
-                            with st.expander(f"📚 Learning {item['skill']}", expanded=True):
-                                st.write(item['advice'])
-                                st.caption("Recommended Resources:")
-                                for res in item.get("resources", []):
-                                    st.markdown(f"- 🔗 `{res}`")
+                            st.markdown(f"""
+                                <div style='background: rgba(255, 255, 255, 0.03); border-left: 4px solid #00bfff; padding: 15px; border-radius: 8px; margin-bottom: 12px;'>
+                                    <strong style='color: #00bfff; font-size: 1.1rem;'>{item['skill']}</strong><br>
+                                    <p style='margin: 5px 0;'>{item['advice']}</p>
+                                    <div style='display: flex; gap: 10px; flex-wrap: wrap;'>
+                                        {' '.join([f"<span style='background: rgba(0, 191, 255, 0.1); color: #00bfff; padding: 2px 8px; border-radius: 12px; font-size: 12px;'>🔗 {r}</span>" for r in item.get('resources', [])])}
+                                    </div>
+                                </div>
+                            """, unsafe_allow_html=True)
                         
-                        st.markdown("#### 📅 4-Week Roadmap")
-                        st.success(gap_data.get("timeline", "Continue learning daily!"))
+                        st.markdown("#### 📅 4-Week Career Roadmap")
+                        timeline = gap_data.get("timeline", [])
+                        if isinstance(timeline, list):
+                            for item in timeline:
+                                week = item.get("week", "?")
+                                focus = item.get("focus", [])
+                                focus_list = "".join([f"<li>{f}</li>" for f in focus]) if isinstance(focus, list) else f"<li>{focus}</li>"
+                                st.markdown(f"""
+                                    <div class='custom-card' style='padding: 15px; margin-bottom: 10px; border-left: 4px solid #4bc0c0;'>
+                                        <h5 style='color: #4bc0c0; margin: 0;'>Week {week}</h5>
+                                        <ul style='margin-bottom: 0; padding-left: 20px;'>
+                                            {focus_list}
+                                        </ul>
+                                    </div>
+                                """, unsafe_allow_html=True)
+                        else:
+                            st.success(timeline)
         else:
             st.warning("Please provide both Resume and JD.")
 

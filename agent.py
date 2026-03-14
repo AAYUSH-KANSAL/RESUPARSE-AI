@@ -42,7 +42,7 @@ class ATSResumeAgent:
             - "skill": Name of the missing skill.
             - "advice": Brief strategy to learn it.
             - "resources": A list of 2-3 specific resource names (e.g. "Coursera: Python for Data Science", "YouTube: Advanced React Patterns").
-        - "timeline": A suggested 2-4 week learning roadmap.
+        - "timeline": A list of 4 objects, each with "week" (number) and "focus" (a list of 3-4 specific topics or tasks).
 
         Resume:
 {text}
