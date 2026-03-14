@@ -131,10 +131,6 @@ def extract_text_from_docx(docx_file):
     return "\n".join(para.text for para in doc.paragraphs)
 
 def generate_pdf(feedback):
-    if not isinstance(feedback, dict):
-        # Fallback for old string-based feedback
-        feedback = {"summary": str(feedback), "overall_match": 0, "category_scores": {}, "matched_keywords": [], "missing_keywords": [], "improvements": []}
-
     pdf = FPDF()
     pdf.add_page()
     
