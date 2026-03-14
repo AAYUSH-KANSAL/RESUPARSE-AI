@@ -299,16 +299,28 @@ if "jd_text" not in st.session_state:
 with st.sidebar:
     st.image("resuparseai.png", width=280)
     page = option_menu(
-        menu_title="Navigation",
-        options=["📄 Resume Analyzer", "✍️ Cover Letter", "🎯 Skill Gap", "🎤 Interview Prep", "💰 Salary Coach"],
-        icons=["file-earmark-text", "pen", "layout-text-sidebar", "people", "cash-stack"],
+        menu_title="Main Menu",
+        options=["📄 Resume Analyzer", "✍️ Cover Letter", "🎯 Skill Gap", "🛠️ Project Ideas", "🎤 Interview Prep", "💰 Salary Coach"],
+        icons=["file-earmark-text", "feather", "layout-text-sidebar", "tools", "people", "cash-stack"],
         menu_icon="cast",
         default_index=0,
         styles={
-            "container": {"padding": "0!important", "background-color": "transparent"},
+            "container": {"padding": "5px", "background-color": "transparent"},
             "icon": {"color": "#00bfff", "font-size": "18px"}, 
-            "nav-link": {"font-size": "15px", "text-align": "left", "margin":"5px", "--hover-color": "rgba(0, 191, 255, 0.1)"},
-            "nav-link-selected": {"background-color": "rgba(0, 191, 255, 0.2)", "border-left": "4px solid #00bfff"},
+            "nav-link": {
+                "font-size": "15px", 
+                "text-align": "left", 
+                "margin":"5px", 
+                "padding": "10px",
+                "border-radius": "10px",
+                "--hover-color": "rgba(0, 191, 255, 0.15)"
+            },
+            "nav-link-selected": {
+                "background-color": "rgba(0, 191, 255, 0.2)", 
+                "color": "white",
+                "border-left": "6px solid #00bfff",
+                "font-weight": "bold"
+            },
         }
     )
     st.markdown("---")
@@ -571,24 +583,6 @@ elif page == "🎯 Skill Gap":
                             """, unsafe_allow_html=True)
                         
                         st.markdown("---")
-                        st.markdown("#### 🛠️ High-Impact Project Ideas")
-                        with st.spinner("Generating resume-builder projects..."):
-                            proj_data = agent.generate_project_ideas_text(resume, jd)
-                            if "projects" in proj_data:
-                                for p in proj_data['projects']:
-                                    st.markdown(f"""
-                                        <div class='custom-card' style='border-top: 3px solid #00bfff;'>
-                                            <span style='color:#00bfff; font-size:12px; font-weight:bold;'>Skill: {p['skill']}</span>
-                                            <h5 style='margin-top:5px;'>{p['title']}</h5>
-                                            <p style='font-size:14px;'>{p['description']}</p>
-                                            <p style='color:#aaa; font-size:12px;'><strong>Tech Stack:</strong> {', '.join(p['tech_stack'])}</p>
-                                            <div style='background:rgba(75, 192, 192, 0.1); padding:8px; border-radius:5px; border:1px dashed #4bc0c0;'>
-                                                🚀 <strong>Resume Bullet:</strong> {p['resume_bullet']}
-                                            </div>
-                                        </div>
-                                    """, unsafe_allow_html=True)
-                        
-                        st.markdown("---")
                         st.markdown("#### 📅 4-Week Career Roadmap")
                         timeline = gap_data.get("timeline", [])
                         if isinstance(timeline, list):
@@ -633,6 +627,36 @@ elif page == "🎤 Interview Prep":
                             """, unsafe_allow_html=True)
                 else:
                     st.error("Failed to generate questions. Please try again.")
+        else:
+            st.warning("Please provide both Resume and JD.")
+
+# -------- Project Ideas Tab --------
+elif page == "🛠️ Project Ideas":
+    st.markdown("<h2 style='color:#00bfff;'>🛠️ Resume-Builder Project Generator</h2>", unsafe_allow_html=True)
+    resume, jd = show_shared_inputs()
+    
+    if st.button("🏗️ Generate Project Ideas"):
+        if resume and jd:
+            with st.spinner("Analyzing skill landscape..."):
+                proj_data = agent.generate_project_ideas_text(resume, jd)
+                if "projects" in proj_data:
+                    for p in proj_data['projects']:
+                        st.markdown(f"""
+                            <div class='custom-card' style='border-left: 5px solid #00bfff;'>
+                                <div style='display: flex; justify-content: space-between; align-items: center;'>
+                                    <h4 style='color: #fff; margin:0;'>{p['title']}</h4>
+                                    <span style='background: rgba(0, 191, 255, 0.1); color: #00bfff; padding: 4px 12px; border-radius: 20px; font-size: 13px;'>{p['skill']}</span>
+                                </div>
+                                <p style='margin-top: 15px; font-size: 1.05rem;'>{p['description']}</p>
+                                <p style='color: #aaa;'><strong>🛠️ Tech Stack:</strong> {', '.join(p['tech_stack'])}</p>
+                                <div style='background: rgba(75, 192, 192, 0.05); border: 1px dashed rgba(75, 192, 192, 0.3); padding: 15px; border-radius: 10px; margin-top: 15px;'>
+                                    <p style='color: #4bc0c0; margin-bottom: 5px; font-weight: bold;'>📝 Resume-Ready Bullet Point:</p>
+                                    <p style='font-style: italic; margin-bottom: 0;'>"{p['resume_bullet']}"</p>
+                                </div>
+                            </div>
+                        """, unsafe_allow_html=True)
+                else:
+                    st.error("Failed to generate project ideas. Please try again.")
         else:
             st.warning("Please provide both Resume and JD.")
 
